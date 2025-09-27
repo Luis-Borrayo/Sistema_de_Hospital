@@ -1,40 +1,71 @@
 package com.luisborrayo.models;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapsId;
+import jakarta.persistence.OneToOne;
 
 @Entity
-@Table(name = "historial_medico",
-        uniqueConstraints = { @UniqueConstraint(name = "uk_historial_paciente", columnNames = {"paciente_id"}) })
+@Table(name = "historial_medico")
 public class HistorialMedico {
 
     @Id
-    private Long id; // mapped to paciente id
+    private Long id;
 
-    @MapsId
     @OneToOne
-    @JoinColumn(name = "paciente_id", foreignKey = @ForeignKey(name = "fk_historial_paciente"), nullable = false, unique = true)
-    private Paciente paciente;
+    @MapsId
+    @JoinColumn(
+            name = "paciente_id",
+            foreignKey = @ForeignKey(name = "fk_historial_paciente")
+    )
+    private Pacientes paciente;
 
-    @Column(length = 1000)
+    @Column(length = 500)
     private String alergias;
 
-    @Column(length = 2000)
+    @Column(length = 500)
     private String antecedentes;
 
-    @Column(length = 2000)
+    @Column(length = 500)
     private String observaciones;
-
     public HistorialMedico() {}
 
-    // getters & setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Paciente getPaciente() { return paciente; }
-    public void setPaciente(Paciente paciente) { this.paciente = paciente; }
-    public String getAlergias() { return alergias; }
-    public void setAlergias(String alergias) { this.alergias = alergias; }
-    public String getAntecedentes() { return antecedentes; }
-    public void setAntecedentes(String antecedentes) { this.antecedentes = antecedentes; }
-    public String getObservaciones() { return observaciones; }
-    public void setObservaciones(String observaciones) { this.observaciones = observaciones; }
+    public HistorialMedico(Pacientes paciente, String alergias, String antecedentes, String Observaciones) {
+        this.paciente = paciente;
+        this.alergias = alergias;
+        this.antecedentes = antecedentes;
+        this.observaciones = Observaciones;
+    }
+    public Long getId() {
+        return id;
+    }
+    public void setId(Long id) {
+        this.id = id;
+    }
+    public Pacientes getPaciente() {
+        return paciente;
+    }
+    public void setPaciente(Pacientes paciente) {
+        this.paciente = paciente;
+    }
+    public String getAlergias() {
+        return alergias;
+    }
+    public void setAlergias(String alergias) {
+        this.alergias = alergias;
+    }
+    public String getAntecedentes() {
+        return antecedentes;
+    }
+    public void setAntecedentes(String antecedentes) {
+        this.antecedentes = antecedentes;
+    }
+    public String getObservaciones() {
+        return observaciones;
+    }
+    public void setObservaciones(String observaciones) {
+        this.observaciones = observaciones;
+    }
+
 }

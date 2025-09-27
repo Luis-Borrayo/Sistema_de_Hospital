@@ -1,10 +1,8 @@
 package com.luisborrayo.services;
 
 import com.luisborrayo.models.Medico;
-import com.luisborrayo.models.Especialidad;
-
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
@@ -13,7 +11,7 @@ public class RegistrarMedico {
     private static final Pattern EMAIL_SIMPLE = Pattern.compile("^\\S+@\\S+\\.\\S+$");
 
     public static Medico crearMedicoConsola(Scanner sc) {
-        EntityManager em = JpaUtil.getEntityManager();
+        EntityManager em = com.luisborrayo.utils.JpaUtil.getEntityManager();
         try {
             System.out.print("Nombre del médico: ");
             String nombre = sc.nextLine().trim();
@@ -29,13 +27,13 @@ public class RegistrarMedico {
             }
 
             System.out.println("Especialidad (elige uno): ");
-            for (Especialidad e : Especialidad.values()) {
+            for (Medico.Especialidad e : Medico.Especialidad.values()) {
                 System.out.println(" - " + e.name());
             }
             System.out.print("Especialidad: ");
             String esp = sc.nextLine().trim();
-            Especialidad especialidad = Especialidad.OTRO;
-            try { especialidad = Especialidad.valueOf(esp); } catch (Exception ex) { /* usar OTRO */ }
+            Medico.Especialidad especialidad = Medico.Especialidad.CARDIOLOGIA;
+            try { especialidad = Medico.Especialidad.valueOf(esp); } catch (Exception ex) {}
 
             System.out.print("Email (opcional): ");
             String email = sc.nextLine().trim();

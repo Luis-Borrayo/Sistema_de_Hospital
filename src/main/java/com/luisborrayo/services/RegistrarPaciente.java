@@ -1,10 +1,8 @@
 package com.luisborrayo.services;
 
-import com.luisborrayo.models.Paciente;
-
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.TypedQuery;
+import com.luisborrayo.models.Pacientes;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import java.time.LocalDate;
 import java.util.Scanner;
 import java.util.regex.Pattern;
@@ -13,8 +11,8 @@ public class RegistrarPaciente {
 
     private static final Pattern EMAIL_SIMPLE = Pattern.compile("^\\S+@\\S+\\.\\S+$");
 
-    public static Paciente crearPacienteConsola(Scanner sc) {
-        EntityManager em = JpaUtil.getEntityManager();
+    public static Pacientes crearPacienteConsola(Scanner sc) {
+        EntityManager em = com.luisborrayo.utils.JpaUtil.getEntityManager();
         try {
             System.out.print("Nombre: ");
             String nombre = sc.nextLine().trim();
@@ -44,7 +42,7 @@ public class RegistrarPaciente {
                 email = null;
             }
 
-            Paciente p = new Paciente();
+            Pacientes p = new Pacientes();
             p.setNombre(nombre);
             p.setDpi(dpi);
             p.setFechaNacimiento(fecha);
@@ -63,7 +61,7 @@ public class RegistrarPaciente {
     }
 
     private static boolean existeDpi(EntityManager em, String dpi) {
-        TypedQuery<Long> q = em.createQuery("SELECT COUNT(p) FROM Paciente p WHERE p.dpi = :dpi", Long.class);
+        TypedQuery<Long> q = em.createQuery("SELECT COUNT(p) FROM Pacientes p WHERE p.dpi = :dpi", Long.class);
         q.setParameter("dpi", dpi);
         Long c = q.getSingleResult();
         return c != null && c > 0;

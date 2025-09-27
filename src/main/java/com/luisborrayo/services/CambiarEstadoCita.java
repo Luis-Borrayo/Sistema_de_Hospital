@@ -1,17 +1,13 @@
 package com.luisborrayo.services;
 
 import com.luisborrayo.models.Cita;
-import com.luisborrayo.models.EstadoCita;
-
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import java.util.List;
+import jakarta.persistence.EntityManager;
 import java.util.Scanner;
 
 public class CambiarEstadoCita {
 
     public static void cambiarEstadoConsola(Scanner sc) {
-        EntityManager em = JpaUtil.getEntityManager();
+        EntityManager em = com.luisborrayo.utils.JpaUtil.getEntityManager();
         try {
             System.out.print("Id de la cita: ");
             Long id = Long.parseLong(sc.nextLine().trim());
@@ -22,8 +18,8 @@ public class CambiarEstadoCita {
             System.out.println("Estado actual: " + cita.getEstado());
             System.out.print("Nuevo estado (PROGRAMADA, ATENDIDA, CANCELADA): ");
             String nuevo = sc.nextLine().trim();
-            EstadoCita estado;
-            try { estado = EstadoCita.valueOf(nuevo); } catch (Exception e) {
+            Cita.EstadoCita estado;
+            try { estado = Cita.EstadoCita.valueOf(nuevo); } catch (Exception e) {
                 System.out.println("Estado inválido.");
                 return;
             }

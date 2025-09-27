@@ -1,23 +1,22 @@
 package com.luisborrayo.services;
 
 import com.luisborrayo.models.HistorialMedico;
-import com.luisborrayo.models.Paciente;
-
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
+import com.luisborrayo.models.Pacientes;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import java.util.Scanner;
 
 public class EditarHistorial {
 
     public static void editarHistorialConsola(Scanner sc) {
-        EntityManager em = JpaUtil.getEntityManager();
+        EntityManager em = com.luisborrayo.utils.JpaUtil.getEntityManager();
         try {
             System.out.print("Ingrese DPI del paciente para editar historial: ");
             String dpi = sc.nextLine().trim();
 
-            TypedQuery<Paciente> q = em.createQuery("SELECT p FROM Paciente p WHERE p.dpi = :dpi", Paciente.class);
+            TypedQuery<Pacientes> q = em.createQuery("SELECT p FROM Pacientes p WHERE p.dpi = :dpi", Pacientes.class);
             q.setParameter("dpi", dpi);
-            Paciente p;
+            Pacientes p;
             try {
                 p = q.getSingleResult();
             } catch (Exception e) {
@@ -26,12 +25,10 @@ public class EditarHistorial {
             }
 
             em.getTransaction().begin();
-            // cargar historial si existe
-            HistorialMedico h = p.getHistorial();
+            HistorialMedico h = p.getHistorialMedico();
             if (h == null) {
                 h = new HistorialMedico();
                 h.setPaciente(p);
-                // id se mapeará por MapsId al persistirse
             } else {
                 System.out.println("Historial actual -> Alergias: " + h.getAlergias());
             }
@@ -48,7 +45,7 @@ public class EditarHistorial {
             String obs = sc.nextLine();
             if (!obs.trim().isEmpty()) h.setObservaciones(obs);
 
-            em.persist(h); // como MapsId y paciente ya existente, se guardará con el mismo id
+            em.persist(h);
             em.getTransaction().commit();
             System.out.println("Historial guardado/actualizado para paciente id: " + p.getId());
         } finally {

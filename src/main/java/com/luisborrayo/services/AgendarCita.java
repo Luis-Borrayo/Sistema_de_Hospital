@@ -2,10 +2,9 @@ package com.luisborrayo.services;
 
 import com.luisborrayo.models.Cita;
 import com.luisborrayo.models.Medico;
-import com.luisborrayo.models.Paciente;
-
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
+import com.luisborrayo.models.Pacientes;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Scanner;
@@ -13,16 +12,16 @@ import java.util.Scanner;
 public class AgendarCita {
 
     public static void agendarConsola(Scanner sc) {
-        EntityManager em = JpaUtil.getEntityManager();
+        EntityManager em = com.luisborrayo.utils.JpaUtil.getEntityManager();
         try {
             System.out.print("DPI paciente: ");
             String dpi = sc.nextLine().trim();
 
-            TypedQuery<Paciente> q1 = em.createQuery("SELECT p FROM Paciente p WHERE p.dpi = :dpi", Paciente.class);
+            TypedQuery<Pacientes> q1 = em.createQuery("SELECT p FROM Pacientes p WHERE p.dpi = :dpi", Pacientes.class);
             q1.setParameter("dpi", dpi);
-            List<Paciente> lp = q1.getResultList();
+            List<Pacientes> lp = q1.getResultList();
             if (lp.isEmpty()) { System.out.println("Paciente no encontrado"); return; }
-            Paciente paciente = lp.get(0);
+            Pacientes paciente = lp.get(0);
 
             System.out.print("Colegiado del médico: ");
             String coleg = sc.nextLine().trim();
