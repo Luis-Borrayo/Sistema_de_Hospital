@@ -16,17 +16,20 @@ public class MenuConsultas {
     public static void menuConsultas(Scanner sc) {
         int opcion = 0;
         do {
-
             System.out.println("-- Consultas --");
-            System.out.println("6.1 Listar pacientes con sus citas");
-            System.out.println("6.2 Listar médicos con próximas citas");
-            System.out.println("6.3 Buscar citas por rango de fechas");
-            System.out.println("6.4 Ver historial médico de un paciente");
+            System.out.println("1 Listar pacientes con sus citas");
+            System.out.println("2 Listar médicos con próximas citas");
+            System.out.println("3 Buscar citas por rango de fechas");
+            System.out.println("4 Ver historial médico de un paciente");
             System.out.println("5. Volver al menú principal");
 
             System.out.print("Seleccione una opción: ");
-            opcion = sc.nextInt();
-            sc.nextLine();
+            String input = sc.nextLine().trim();
+            try {
+                opcion = Integer.parseInt(input);
+            } catch (NumberFormatException e) {
+                opcion = 0;
+            }
 
             switch (opcion) {
                 case 1 -> listarPacientesConCitas();
@@ -42,14 +45,23 @@ public class MenuConsultas {
     private static void listarPacientesConCitas() {
         EntityManager em = com.luisborrayo.utils.JpaUtil.getEntityManager();
         try {
-            TypedQuery<Pacientes> query = em.createQuery("SELECT DISTINCT P FROM Pacientes P LEFT JOIN FETCH p.citas", Pacientes.class);
-        List<Pacientes> pacientes = query.getResultList();
+            TypedQuery<Pacientes> queryPacientes = em.createQuery("SELECT p FROM Pacientes p", Pacientes.class);
+            List<Pacientes> pacientes = queryPacientes.getResultList();
+
             for (Pacientes p : pacientes) {
                 System.out.println("Paciente: " + p.getNombre() + " | DPI: " + p.getDpi());
-                if (p.getCitas().isEmpty()) {
+
+                TypedQuery<Cita> queryCitas = em.createQuery(
+                        "SELECT c FROM Cita c WHERE c.paciente.id = :pacienteId ORDER BY c.fechaHora",
+                        Cita.class
+                );
+                queryCitas.setParameter("pacienteId", p.getId());
+                List<Cita> citas = queryCitas.getResultList();
+
+                if (citas.isEmpty()) {
                     System.out.println("  Sin citas");
                 } else {
-                    for (Cita c : p.getCitas()) {
+                    for (Cita c : citas) {
                         System.out.println("  Cita con Dr. " + c.getMedico().getNombre() +
                                 " en " + c.getFechaHora() +
                                 " | Estado: " + c.getEstado());
@@ -65,24 +77,28 @@ public class MenuConsultas {
         EntityManager em = com.luisborrayo.utils.JpaUtil.getEntityManager();
         try {
             LocalDateTime ahora = LocalDateTime.now();
-            TypedQuery<Medico> query = em.createQuery(
-                    "SELECT DISTINCT m FROM Medico m LEFT JOIN FETCH m.citas c WHERE c.fechaHora >= :ahora OR c IS NULL",
-                    Medico.class
-            );
-            query.setParameter("ahora", ahora);
-            List<Medico> medicos = query.getResultList();
+
+            TypedQuery<Medico> queryMedicos = em.createQuery("SELECT m FROM Medico m", Medico.class);
+            List<Medico> medicos = queryMedicos.getResultList();
 
             for (Medico m : medicos) {
                 System.out.println("Médico: " + m.getNombre() + " | Colegiado: " + m.getColegiado());
-                if (m.getCitas().isEmpty()) {
+
+                TypedQuery<Cita> queryCitas = em.createQuery(
+                        "SELECT c FROM Cita c WHERE c.medico.id = :medicoId AND c.fechaHora >= :ahora ORDER BY c.fechaHora",
+                        Cita.class
+                );
+                queryCitas.setParameter("medicoId", m.getId());
+                queryCitas.setParameter("ahora", ahora);
+                List<Cita> citasProximas = queryCitas.getResultList();
+
+                if (citasProximas.isEmpty()) {
                     System.out.println("  Sin próximas citas");
                 } else {
-                    for (Cita c : m.getCitas()) {
-                        if (c.getFechaHora().isAfter(ahora)) {
-                            System.out.println("  Cita con paciente: " + c.getPaciente().getNombre() +
-                                    " en " + c.getFechaHora() +
-                                    " | Estado: " + c.getEstado());
-                        }
+                    for (Cita c : citasProximas) {
+                        System.out.println("  Cita con paciente: " + c.getPaciente().getNombre() +
+                                " en " + c.getFechaHora() +
+                                " | Estado: " + c.getEstado());
                     }
                 }
             }
@@ -95,10 +111,42 @@ public class MenuConsultas {
         EntityManager em = com.luisborrayo.utils.JpaUtil.getEntityManager();
         try {
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-            System.out.print("Fecha inicio (YYYY-MM-DDTHH:MM): ");
-            LocalDateTime inicio = LocalDateTime.parse(sc.nextLine().trim(), fmt);
-            System.out.print("Fecha fin (YYYY-MM-DDTHH:MM): ");
-            LocalDateTime fin = LocalDateTime.parse(sc.nextLine().trim(), fmt);
+
+            LocalDateTime inicio;
+            while (true) {
+                System.out.print("Fecha inicio (YYYY-MM-DDTHH:MM): ");
+                String fechaTexto = sc.nextLine().trim();
+                if (fechaTexto.isEmpty()) {
+                    System.out.println("Fecha no puede estar vacía.");
+                    continue;
+                }
+                try {
+                    inicio = LocalDateTime.parse(fechaTexto, fmt);
+                    break;
+                } catch (Exception e) {
+                    System.out.println("Formato inválido. Use YYYY-MM-DDTHH:MM");
+                }
+            }
+
+            LocalDateTime fin;
+            while (true) {
+                System.out.print("Fecha fin (YYYY-MM-DDTHH:MM): ");
+                String fechaTexto = sc.nextLine().trim();
+                if (fechaTexto.isEmpty()) {
+                    System.out.println("Fecha no puede estar vacía.");
+                    continue;
+                }
+                try {
+                    fin = LocalDateTime.parse(fechaTexto, fmt);
+                    if (fin.isBefore(inicio)) {
+                        System.out.println("Fecha fin debe ser posterior a fecha inicio.");
+                        continue;
+                    }
+                    break;
+                } catch (Exception e) {
+                    System.out.println("Formato inválido. Use YYYY-MM-DDTHH:MM");
+                }
+            }
 
             TypedQuery<Cita> query = em.createQuery(
                     "SELECT c FROM Cita c WHERE c.fechaHora BETWEEN :inicio AND :fin ORDER BY c.fechaHora",
@@ -126,13 +174,19 @@ public class MenuConsultas {
     private static void verHistorialPaciente(Scanner sc) {
         EntityManager em = com.luisborrayo.utils.JpaUtil.getEntityManager();
         try {
-            System.out.print("Ingrese DPI del paciente: ");
-            String dpi = sc.nextLine().trim();
+            String dpi;
+            while (true) {
+                System.out.print("Ingrese DPI del paciente: ");
+                dpi = sc.nextLine().trim();
+                if (!dpi.isEmpty()) break;
+                System.out.println("DPI no puede estar vacío.");
+            }
 
             TypedQuery<HistorialMedico> query = em.createQuery(
-                    "SELECT h FROM HistorialMedico h WHERE h.paciente.dpi = :dpi", HistorialMedico.class
+                    "SELECT h FROM HistorialMedico h WHERE h.paciente.dpi = :dpi",
+                    HistorialMedico.class
             );
-            query.setParameter("dpi", Long.parseLong(dpi));
+            query.setParameter("dpi", dpi);
 
             HistorialMedico h = query.getResultStream().findFirst().orElse(null);
             if (h == null) {

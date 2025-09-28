@@ -19,9 +19,14 @@ public class Menuprincipal {
             System.out.println("7. Eliminar");
             System.out.println("8. Semilla de datos");
             System.out.println("9. Salir");
+            System.out.print("Seleccione una opción: ");
 
-            opcion = in.nextInt();
-            in.nextInt();
+            String input = in.nextLine().trim();
+            try {
+                opcion = Integer.parseInt(input);
+            } catch (NumberFormatException e) {
+                opcion = 0;
+            }
 
             switch(opcion){
                 case 1 -> RegistrarPaciente.crearPacienteConsola(in);
@@ -36,6 +41,7 @@ public class Menuprincipal {
                 default -> System.out.println("Opción inválida.");
             }
         } while (opcion != 9);
-    }
 
+        in.close();
+    }
 }
